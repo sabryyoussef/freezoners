@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="client_documents.Many2ManyPdfPreview">
+        <div class="o_pdf_preview">
+            <t t-foreach="state.attachments" t-as="attachmentId">
+                <div class="o_pdf_preview_item">
+                    <!-- Placeholder for PDF rendering -->
+                    <div t-att-data-id="attachmentId" class="o_pdf_canvas">
+                        <!-- PDF.js or other library will render the PDF here -->
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

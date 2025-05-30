@@ -1,5 +1,0 @@
-<odoo>
-    <record model='ir.ui.menu' id='hr_expense.menu_hr_expense_root'>
-<!--        <field name="groups_id" eval="[(4,ref('freezoner_custom.hr_expense_group'))]"/>-->
-    </record>
-</odoo>

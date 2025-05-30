@@ -1,0 +1,47 @@
+<odoo>
+    <!-- Corrected structure and references -->
+    <record id="freezoner_account_opened_mail_template" model="mail.template">
+        <field name="name">Account Opened</field>
+        <field name="model_id" ref="model_task_wizard"/>
+        <field name="model">task.wizard</field>
+        <field name="subject">Account Opened</field>
+        <field name="auto_delete" eval="False"/>
+        <field name="email_from">{{ object.task_id.company_id.email }}</field>
+        <field name="email_to">{{ object.task_id.partner_id.email }}</field>
+    </record>
+
+    <record id="freezoner_bank_evaluation_ongoing_mail_template" model="mail.template">
+        <field name="name">Bank Evaluation Ongoing</field>
+        <field name="model_id" ref="model_task_wizard"/>
+        <field name="model">task.wizard</field>
+        <field name="subject">Bank Evaluation Ongoing</field>
+        <field name="auto_delete" eval="False"/>
+        <field name="email_from">{{ object.task_id.company_id.email }}</field>
+        <field name="email_to">{{ object.task_id.partner_id.email }}</field>
+    </record>
+
+    <record id="freezoner_document_completion_ongoing_mail_template" model="mail.template">
+        <field name="name">Document Completion and Review</field>
+        <field name="model_id" ref="model_task_wizard"/>
+        <field name="model">task.wizard</field>
+        <field name="subject">Document Completion and Review</field>
+        <field name="auto_delete" eval="False"/>
+        <field name="email_from">{{ object.task_id.company_id.email }}</field>
+        <field name="email_to">{{ object.task_id.partner_id.email }}</field>
+    </record>
+
+    <record id="freezoner_bank_submitted_mail_template" model="mail.template">
+        <field name="name">Bank Application Submitted</field>
+        <field name="model_id" ref="model_task_wizard"/>
+        <field name="model">task.wizard</field>
+        <field name="subject">Bank Application Submitted</field>
+        <field name="auto_delete" eval="False"/>
+        <field name="email_from">{{ object.task_id.company_id.email }}</field>
+        <field name="email_to">{{ object.task_id.partner_id.email }}</field>
+    </record>
+
+    <record id="model_task_wizard" model="ir.model">
+        <field name="name">Task Wizard</field>
+        <field name="model">task.wizard</field>
+    </record>
+</odoo>

@@ -1,0 +1,65 @@
+<odoo>
+    <record model="ir.ui.view" id="project_update_fields_form_view">
+        <field name="name">project.update.fields.form.view</field>
+        <field name="model">project.update.fields</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="line_id" invisible="1"/>
+                        <field name="field_name" invisible="1"/>
+                        <field name="field_ttype" invisible="1"/>
+
+                        <!-- All field types shown, frontend will handle visibility -->
+                        <field name="update_value_char"/>
+                        <field name="update_value_date"/>
+                        <field name="update_value_float"/>
+                        <field name="update_value_integer"/>
+                        <field name="update_value_bool"/>
+
+                        <field name="state_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="user_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="team_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="parent_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="mobile_country_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="country_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="company_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="activity_user_id" options="{'no_create': True,'no_open': True}"/>
+                        <field name="passport"/>
+                        <field name="accountant1_id"/>
+                        <field name="accountant2_id"/>
+                        <field name="current_visa"/>
+                        <field name="entry_stamp"/>
+                        <field name="legal_form_id"/>
+                        <field name="license_authority_id"/>
+                        <field name="place_of_birth"/>
+                        <field name="primary_support_id"/>
+                        <field name="permanent_address_id"/>
+
+                        <field name="parent_partner_ids" widget="many2many_tags"/>
+                        <field name="parent_chart_ids" widget="many2many_tags"/>
+<!--                        <field name="license_activity_ids" widget="many2many_tags"/>-->
+                        <field name="risk_assessment_ids" widget="many2many_tags"
+                               options="{'color_field': 'color', 'no_create_edit': True}"/>
+
+                        <field name="company_type"/>
+                        <field name="gender"/>
+                        <field name="lang"/>
+                        <field name="hand_legal_type"/>
+                        <field name="license_validity"/>
+                        <field name="partner_category"/>
+                        <field name="relationship"/>
+                        <field name="status"/>
+                        <field name="shareholder"/>
+                        <field name="type"/>
+                        <field name="tz"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_update" string="Update" type="object" class="btn btn-primary"/>
+                    <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

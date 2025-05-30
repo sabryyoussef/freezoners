@@ -3,7 +3,7 @@
     'name': "Cabinet Directory",
     'author': "Beshoy Wageh",
     # 'version': '16.0',
-    'depends': ['base','crm','client_documents'],
+    'depends': ['base','crm'],
     'data': [
         'security/ir.model.access.csv',
         'views/views.xml',

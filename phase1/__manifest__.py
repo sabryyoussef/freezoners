@@ -13,10 +13,11 @@
         "sale",
         "sale_project",
         "web",
+        "client_documents",  # Added dependency for Client Documents
         "hr_expense",
         "project",
         "crm",
-        "client_documents",  # Added dependency for Client Documents
+        "cabinet_directory",  # Added dependency for Cabinet Directory
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -53,4 +54,5 @@
     "installable": True,
     "application": False,
     "auto_install": False,
+    "pre_init_hook": "pre_init_hook.pre_init_hook",
 }

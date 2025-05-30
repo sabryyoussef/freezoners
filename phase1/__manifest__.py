@@ -16,6 +16,7 @@
         "hr_expense",
         "project",
         "crm",
+        "client_documents",  # Added dependency for Client Documents
     ],
     "data": [
         "security/ir.model.access.csv",

@@ -1,321 +1,234 @@
-from collections import defaultdict
-from datetime import datetime, timedelta
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from datetime import timedelta
+from itertools import chain, starmap, zip_longest
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import is_html_empty
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    # Basic Fields
-    active = fields.Boolean(default=True, copy=False, tracking=True)
-    system_expiry_date = fields.Date(string="System Expiry Date", copy=False)
-
-    # State Fields
-    state = fields.Selection(
-        [
-            ("draft", "Pro-forma Invoice"),
-            ("sent", "Pro-forma Invoice Sent"),
-            ("sale", "Pro-forma Confirm"),
-            ("done", "Locked"),
-            ("cancel", "Cancelled"),
-        ],
-        string="Status",
-        readonly=True,
-        copy=False,
-        index=True,
-        tracking=3,
-        default="draft",
-    )
-
-    payment_method = fields.Selection(
-        [
-            ("bank", "Bank"),
-            ("visa", "Stripe"),
-        ],
-        string="Payment Method",
-        tracking=3,
-        default="bank",
-        required=True,
-    )
-
-    # Related Fields
-    sov_ids = fields.One2many("sale.sov", "sale_id", string="SOV Items")
-    analytic_item_ids = fields.Many2many(
-        "account.analytic.line",
-        string="Analytic Items",
-        compute="_compute_analytic_item_ids",
+    sale_order_template_id = fields.Many2one(
+        comodel_name="sale.order.template",
+        string="Quotation Template",
+        compute="_compute_sale_order_template_id",
         store=True,
-    )
-
-    # Computed Fields
-    total_revenue = fields.Float(
-        string="Total Revenue",
-        compute='_compute_total_revenue',
-        store=True,
-    )
-    total_planned_expenses = fields.Float(
-        string="Total Planned Expenses",
-        compute='_compute_total_planned_expenses',
-        store=True,
-    )
-    total_net_achievement = fields.Float(
-        string="Total Net Achievement",
-        compute='_compute_total_net_achievement',
-        store=True,
-    )
-    date_confirmed = fields.Datetime(
-        compute="_compute_first_confirmed_date", store=True
-    )
-    validity_date = fields.Date(
-        string="Expiration",
-        compute="_compute_validity_date",
-        store=True,
-        readonly=True,
-        copy=False,
+        readonly=False,
+        check_company=True,
         precompute=True,
+        domain="[('company_id', '=', False), ('company_id', '=', company_id)]",
     )
-    is_expired = fields.Boolean(
-        compute='_compute_is_expired',
-        store=True
+    sale_order_option_ids = fields.One2many(
+        comodel_name="sale.order.option",
+        inverse_name="order_id",
+        string="Optional Products Lines",
+        copy=True,
+    )
+    payment_status = fields.Selection(
+        [
+            ("pending", "Pending"),
+            ("paid", "Paid"),
+            ("failed", "Failed"),
+        ],
+        string="Payment Status",
+        default="pending",
+        help="Indicates the payment status of the sale order.",
     )
 
-    # Computed Methods
-    @api.depends("validity_date", "state")
-    def _compute_is_expired(self):
-        today = fields.Date.context_today(self)
+    # === COMPUTE METHODS === #
+
+    def _compute_sale_order_template_id(self):
         for order in self:
-            order.is_expired = (
-                order.validity_date
-                and order.state in ["draft", "sent"]
-                and order.validity_date < today
+            company_template = order.company_id.sale_order_template_id
+            if company_template and (order.sale_order_template_id != company_template):
+                if hasattr(order, "website_id") and order.website_id:
+                    # Skip applying quotation template for eCommerce orders.
+                    continue
+                order.sale_order_template_id = company_template.id
+
+    @api.depends("partner_id", "sale_order_template_id")
+    def _compute_note(self):
+        super()._compute_note()
+        for order in self.filtered("sale_order_template_id"):
+            template = order.sale_order_template_id.with_context(
+                lang=order.partner_id.lang
+            )
+            order.note = (
+                template.note if not is_html_empty(template.note) else order.note
             )
 
-    @api.depends("create_date")
+    @api.depends("sale_order_template_id")
+    def _compute_require_signature(self):
+        super()._compute_require_signature()
+        for order in self.filtered("sale_order_template_id"):
+            order.require_signature = order.sale_order_template_id.require_signature
+
+    @api.depends("sale_order_template_id")
+    def _compute_require_payment(self):
+        super()._compute_require_payment()
+        for order in self.filtered("sale_order_template_id"):
+            order.require_payment = order.sale_order_template_id.require_payment
+
+    @api.depends("sale_order_template_id")
+    def _compute_prepayment_percent(self):
+        super()._compute_prepayment_percent()
+        for order in self.filtered("sale_order_template_id"):
+            if order.require_payment:
+                order.prepayment_percent = (
+                    order.sale_order_template_id.prepayment_percent
+                )
+
+    @api.depends("sale_order_template_id")
     def _compute_validity_date(self):
-        for order in self:
-            if order.create_date:
-                order.validity_date = order.create_date.date() + timedelta(days=30)
-            else:
-                order.validity_date = False
+        super()._compute_validity_date()
+        for order in self.filtered("sale_order_template_id"):
+            validity_days = order.sale_order_template_id.number_of_days
+            if validity_days > 0:
+                order.validity_date = fields.Date.context_today(order) + timedelta(
+                    validity_days
+                )
 
-    @api.depends("message_ids")
-    def _compute_first_confirmed_date(self):
-        for order in self:
-            first_confirmed_date = None
-            for message in order.message_ids:
-                if message.subtype_id.description == "Quotation confirmed":
-                    if (
-                        first_confirmed_date is None
-                        or message.date < first_confirmed_date
-                    ):
-                        first_confirmed_date = message.date
-            order.date_confirmed = first_confirmed_date
+    @api.depends("sale_order_template_id")
+    def _compute_journal_id(self):
+        super()._compute_journal_id()
+        for order in self.filtered("sale_order_template_id"):
+            order.journal_id = order.sale_order_template_id.journal_id
 
-    @api.depends("name")
-    def _compute_analytic_item_ids(self):
-        for order in self:
-            analytic_items = (
-                self.env["account.analytic.line"]
-                .sudo()
-                .search([("account_id.name", "ilike", order.name)])
-            )
-            order.analytic_item_ids = analytic_items.ids
+    # === CONSTRAINT METHODS === #
 
-    @api.depends("sov_ids.revenue")
-    def _compute_total_revenue(self):
+    @api.constrains("company_id", "sale_order_option_ids")
+    def _check_optional_product_company_id(self):
         for order in self:
-            order.total_revenue = sum(line.revenue for line in order.sov_ids)
+            companies = order.sale_order_option_ids.mapped("product_id.company_id")
+            if companies and any(c != order.company_id for c in companies):
+                bad_products = order.sale_order_option_ids.mapped(
+                    "product_id"
+                ).filtered(lambda p: p.company_id and p.company_id != order.company_id)
+                raise ValidationError(
+                    _(
+                        "Your quotation contains products from company %(product_company)s whereas your quotation belongs to company %(quote_company)s.\n"
+                        "Please change the company of your quotation or remove the products from other companies (%(bad_products)s).",
+                        product_company=", ".join(companies.mapped("display_name")),
+                        quote_company=order.company_id.display_name,
+                        bad_products=", ".join(bad_products.mapped("display_name")),
+                    )
+                )
 
-    @api.depends("sov_ids.planned_expenses")
-    def _compute_total_planned_expenses(self):
-        for order in self:
-            order.total_planned_expenses = sum(
-                line.planned_expenses for line in order.sov_ids
-            )
+    # === ONCHANGE METHODS === #
 
-    @api.depends("sov_ids.net")
-    def _compute_total_net_achievement(self):
-        for order in self:
-            order.total_net_achievement = sum(line.net for line in order.sov_ids)
+    @api.onchange("company_id")
+    def _onchange_company_id(self):
+        """Trigger quotation template recomputation on unsaved records company change"""
+        super()._onchange_company_id()
+        if self._origin.id:
+            return
+        self._compute_sale_order_template_id()
 
-    # Action Methods
-    def action_sale_expiration(self):
-        today = fields.Date.context_today(self)
-        expired_orders = (
-            self.env["sale.order"]
-            .sudo()
-            .search(
-                [("state", "in", ["draft", "sent"]), ("validity_date", "<=", today)]
-            )
+    @api.onchange("sale_order_template_id")
+    def _onchange_sale_order_template_id(self):
+        if not self.sale_order_template_id:
+            return
+
+        sale_order_template = self.sale_order_template_id.with_context(
+            lang=self.partner_id.lang
         )
 
-        for order in expired_orders:
-            if (
-                order.validity_date
-                and order.is_expired
-                and order.validity_date <= today
-            ):
-                order.write({"state": "cancel", "system_expiry_date": today})
+        order_lines_data = [fields.Command.clear()]
+        order_lines_data += [
+            fields.Command.create(line._prepare_order_line_values())
+            for line in sale_order_template.sale_order_template_line_ids
+        ]
 
-    def action_sale_expiration_archive(self):
-        today = fields.Date.context_today(self)
-        orders_to_archive = (
-            self.env["sale.order"]
-            .sudo()
-            .search([("state", "=", "cancel"), ("system_expiry_date", "<=", today)])
+        # set first line to sequence -99, so a resequence on first page doesn't cause following page
+        # lines (that all have sequence 10 by default) to get mixed in the first page
+        if len(order_lines_data) >= 2:
+            order_lines_data[1][2]["sequence"] = -99
+
+        self.order_line = order_lines_data
+
+        option_lines_data = [fields.Command.clear()]
+        option_lines_data += [
+            fields.Command.create(option._prepare_option_line_values())
+            for option in sale_order_template.sale_order_template_option_ids
+        ]
+
+        self.sale_order_option_ids = option_lines_data
+
+    @api.onchange("partner_id")
+    def _onchange_partner_id(self):
+        """Reload template for unsaved orders with unmodified lines & options."""
+        if self._origin or not self.sale_order_template_id:
+            return
+
+        def line_eqv(line, t_line):
+            return (
+                line
+                and t_line
+                and (
+                    line.product_id == t_line.product_id
+                    and line.display_type == t_line.display_type
+                    and line.product_uom == t_line.product_uom_id
+                    and line.product_uom_qty == t_line.product_uom_qty
+                )
+            )
+
+        def option_eqv(option, t_option):
+            return (
+                option
+                and t_option
+                and all(
+                    option[fname] == t_option[fname]
+                    for fname in ["product_id", "uom_id", "quantity"]
+                )
+            )
+
+        lines = self.order_line
+        options = self.sale_order_option_ids
+        t_lines = self.sale_order_template_id.sale_order_template_line_ids
+        t_options = self.sale_order_template_id.sale_order_template_option_ids
+
+        if all(
+            chain(
+                starmap(line_eqv, zip_longest(lines, t_lines)),
+                starmap(option_eqv, zip_longest(options, t_options)),
+            )
+        ):
+            self._onchange_sale_order_template_id()
+
+    # === ACTION METHODS === #
+
+    def _get_confirmation_template(self):
+        self.ensure_one()
+        return (
+            self.sale_order_template_id.mail_template_id
+            or super()._get_confirmation_template()
         )
 
-        for order in orders_to_archive:
-            if order.system_expiry_date:
-                days_since_expiry = (today - order.system_expiry_date).days
-                if days_since_expiry >= 30:
-                    order.write({"active": False})
+    def action_confirm(self):
+        res = super().action_confirm()
 
-    def action_cancel(self):
-        res = super().action_cancel()
+        if self.env.context.get("send_email"):
+            return res
+
         for order in self:
-            for task in order.tasks_ids:
-                task.document_type_ids.unlink()
-                task.document_required_type_ids.unlink()
+            if order.sale_order_template_id.mail_template_id:
+                order._send_order_notification_mail(
+                    order.sale_order_template_id.mail_template_id
+                )
         return res
 
-    def action_update_manager(self):
-        for order in self:
-            for project in order.project_ids:
-                project.write({"user_id": order.user_id.id})
+    def _recompute_prices(self):
+        super()._recompute_prices()
+        self.sale_order_option_ids.discount = 0.0
+        self.sale_order_option_ids._compute_price_unit()
+        self.sale_order_option_ids._compute_discount()
 
-    # Override Methods
-    def _prepare_invoice(self):
-        invoice_vals = super()._prepare_invoice()
-        invoice_vals.update(
-            {
-                "sale_id": self.id,
-                "payment_method": self.payment_method,
-            }
-        )
-        return invoice_vals
-
-    # Constraint Methods
-    @api.constrains("partner_id")
-    def _check_partner(self):
-        for order in self:
-            user = self.env.user
-            team = self.env["crm.team"].sudo().search([("id", "=", 1)])
-            if team and user.id in team.member_ids.ids:
-                partner = order.partner_id
-                if partner and partner.create_date:
-                    create_date = partner.create_date.date()
-                    if create_date < (
-                        fields.Date.context_today(self) - timedelta(days=180)
-                    ):
-                        raise ValidationError(
-                            _(
-                                "Customer Profile has been created more than six (6) months ago. "
-                                "As a member of Sales Team, you are not allowed to create an invoice "
-                                "for this contact. Please contact your Line Manager for assistance."
-                            )
-                        )
-
-    # CRUD Methods
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            partner = self.env["res.partner"].browse(vals.get("partner_id"))
-            if partner:
-                if partner.company_type == "company":
-                    if not partner.phone:
-                        raise ValidationError(
-                            _("Please add phone number for the customer")
-                        )
-                    if not partner.email:
-                        raise ValidationError(_("Please add email for the customer"))
-                    if not partner.license_authority_id:
-                        raise ValidationError(
-                            _("Please add license authority for the customer")
-                        )
-                    if not partner.incorporation_date:
-                        raise ValidationError(
-                            _("Please add incorporation date for the customer")
-                        )
-                    if not partner.license_number:
-                        raise ValidationError(
-                            _("Please add license number for the customer")
-                        )
-                elif partner.company_type == "person":
-                    if not partner.phone:
-                        raise ValidationError(
-                            _("Please add phone number for the customer")
-                        )
-                    if not partner.email:
-                        raise ValidationError(_("Please add email for the customer"))
-                    if not partner.gender:
-                        raise ValidationError(_("Please add gender for the customer"))
-                    if not partner.nationality_id:
-                        raise ValidationError(
-                            _("Please add nationality for the customer")
-                        )
-        return super().create(vals_list)
-
-    def write(self, vals):
-        res = super().write(vals)
-        for order in self:
-            if order.partner_id:
-                if order.partner_id.company_type == "company":
-                    if not order.partner_id.phone:
-                        raise ValidationError(
-                            _("Please add phone number for the customer")
-                        )
-                    if not order.partner_id.email:
-                        raise ValidationError(_("Please add email for the customer"))
-                    if not order.partner_id.license_authority_id:
-                        raise ValidationError(
-                            _("Please add license authority for the customer")
-                        )
-                    if not order.partner_id.incorporation_date:
-                        raise ValidationError(
-                            _("Please add incorporation date for the customer")
-                        )
-                    if not order.partner_id.license_number:
-                        raise ValidationError(
-                            _("Please add license number for the customer")
-                        )
-                elif order.partner_id.company_type == "person":
-                    if not order.partner_id.phone:
-                        raise ValidationError(
-                            _("Please add phone number for the customer")
-                        )
-                    if not order.partner_id.email:
-                        raise ValidationError(_("Please add email for the customer"))
-                    if not order.partner_id.gender:
-                        raise ValidationError(_("Please add gender for the customer"))
-                    if not order.partner_id.nationality_id:
-                        raise ValidationError(
-                            _("Please add nationality for the customer")
-                        )
-        return res
-
-    @api.model
-    def _cron_check_expiration(self):
-        """Minimal cron method to check expiration"""
-        today = fields.Date.context_today(self)
-        self.search(
-            [("state", "in", ["draft", "sent"]), ("validity_date", "<=", today)]
-        ).write({"state": "cancel", "system_expiry_date": today})
-
-    @api.model
-    def _cron_check_expiration_archive(self):
-        """Minimal cron method to archive expired quotations"""
-        today = fields.Date.context_today(self)
-        self.search(
-            [
-                ("state", "=", "cancel"),
-                ("system_expiry_date", "<=", today - timedelta(days=30)),
-            ]
-        ).write({"active": False})
-
-    def check_crm_payment(self):
-        """Dummy method for the button action."""
-        # Add your logic here
-        return True
+    def _can_be_edited_on_portal(self):
+        """
+        Check if the sale order can be edited on the portal.
+        """
+        self.ensure_one()
+        return self.state in ("draft", "sent")

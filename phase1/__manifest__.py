@@ -13,7 +13,6 @@
         "sale",
         "sale_project",
         "web",
-        "client_documents",
         "hr_expense",
         "project",
         "crm",

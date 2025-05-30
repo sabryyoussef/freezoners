@@ -5,7 +5,7 @@
     'category': 'Productivity/Documents',
     'version': '1.0',
     # any module necessary for this one to work correctly
-    'depends': ['base', 'contacts', 'project', 'stock', 'sale_subscription'],
+    'depends': ['base', 'contacts', 'project', 'stock'],  # Temporarily removed 'sale_subscription' to bypass Odoo core view error
     # always loaded
     'data': [
         'security/security.xml',

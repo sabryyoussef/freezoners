@@ -1,4 +1,3 @@
-
 from odoo import api, fields, models
 
 class Partner(models.Model):
@@ -15,6 +14,7 @@ class Partner(models.Model):
     parent_chart_ids = fields.Many2many("res.partner", relation="parent_chart_ids1",
                                         column1="parent_chart_ids2", column2="parent_chart_ids3",
                                         string="Parents Chart", compute='get_parent_chart_ids')
+    active_id = fields.Integer(string="Active ID", compute="_compute_active_id", store=False, readonly=True)
 
 
     def get_parent_chart_ids(self):
@@ -30,6 +30,10 @@ class Partner(models.Model):
                 rec.parent_id = rec.parent_partner_ids[0]
             else:
                 rec.parent_id = False
+
+    def _compute_active_id(self):
+        for rec in self:
+            rec.active_id = rec.id
 
     # def set_parents(self):
     #     partners = self.env['res.partner'].sudo().search([])

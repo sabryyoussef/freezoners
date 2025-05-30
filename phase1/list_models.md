@@ -28,3 +28,35 @@ This directory contains the Odoo model definitions for the `phase1` module. Belo
 | Task | task.py | project.task |
 | TaskDocumentLines | task_document.py | models.Model |
 | TaskDocumentRequiredLines | task_document.py | models.Model | 
+
+# Models Summary
+
+This directory contains the Odoo model definitions for the `phase1` module. Below is a summary of the Python classes defined in these files.
+
+| Class Name | File | Is Inherited |
+|---|---|---|
+| AccountMove | move.py | True |
+| AccountAnalyticLine | sov.py | True |
+| Document | document.py | True |
+| Documents | documents.py | True |
+| DocumentsShare | documents.py | True |
+| DocumentsShareWizard | models.py | True |
+| DocumentRequest | document_request.py | True |
+| MailThread | rating.py | True |
+| Product | product.py | True |
+| ProductTemplate | product.py | True |
+| Project | project.py | True |
+| ProjectException | exception.py | True |
+| ProjectProduct | models.py | True |
+| ProjectProductRemarks | models.py | True |
+| ProjectPartnerFields | project_fields.py | True |
+| ProjectTaskType | task.py | True |
+| Rating | rating.py | True |
+| ResPartner | partner.py | True |
+| SaleOrder | sale.py | True |
+| SaleSOV | sov.py | True |
+| StageTask | project.py | True |
+| Task | task.py | True |
+| TaskDocumentLines | task_document.py | False |
+| TaskDocumentRequiredLines | task_document.py | False | 
+

@@ -17,7 +17,6 @@
         "hr_expense",
         "project",
         "crm",
-        "freezoner_custom",
     ],
     "data": [
         "security/ir.model.access.csv",

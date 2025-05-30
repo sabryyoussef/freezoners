@@ -42,6 +42,14 @@ class Project(models.Model):
         tracking=True,
         help='Related sales order'
     )
+    # Add missing sale_order_id field for compatibility
+    sale_order_id = fields.Many2one(
+        'sale.order',
+        string='Sales Order (Compat)',
+        help='Related sales order for compatibility with legacy code',
+        compute='_compute_sale_order_id',
+        store=False
+    )
 
     is_project_template = fields.Boolean(
         string='Is Template',
@@ -628,6 +636,11 @@ class Project(models.Model):
         if vals.get('is_project_template'):
             vals['state'] = 'a_template'
         return super(Project, self).write(vals)
+
+    @api.depends('sale_id')
+    def _compute_sale_order_id(self):
+        for rec in self:
+            rec.sale_order_id = rec.sale_id
 
 
 class StageTask(models.Model):

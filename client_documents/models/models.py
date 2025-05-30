@@ -50,6 +50,7 @@ class ClientDocuments(models.Model):
     expiration_reminder_sent = fields.Boolean(default=False,tracking=True)
     is_verify = fields.Boolean('Is Verify',tracking=True)
     document_create_date = fields.Datetime(readonly=True, string='Document Create Date',  default=fields.datetime.now(),tracking=True)
+    project_id = fields.Many2one('project.project', string='Project', tracking=True)
 
     def action_numbers(self):
         docs = self.env['res.partner.document'].sudo().search([])

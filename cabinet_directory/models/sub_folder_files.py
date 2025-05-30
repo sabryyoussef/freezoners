@@ -5,7 +5,7 @@ class SubFolderFiles(models.Model):
     _name = 'sub.folder.files'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char()
+    name = fields.Char(string="Name", required=True)
     lead_id = fields.Many2one('crm.lead', string='Pipeline')
     partner_id = fields.Many2one('res.partner', string='Contact')
     folder_id = fields.Many2one('directory.folder', string='Folder')

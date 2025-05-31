@@ -8,12 +8,12 @@ class DocumentsShareWizard(models.TransientModel):
     _inherit = ['mail.activity.mixin']
 
     task_ids = fields.Many2many(
-    'project.task',
-    'res_partner_document_id',
-    'project_task_id',
-    string='Tasks'
-)
-
+        'project.task',
+        'documents_share_wizard_project_task_rel',
+        'documents_share_wizard_id',
+        'project_task_id',
+        string='Tasks'
+    )
 
     document_share_id = fields.Many2one('documents.share', string='Documents Share')
     summary = fields.Char(string='Summary', required=True)

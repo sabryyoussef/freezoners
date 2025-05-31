@@ -9,7 +9,6 @@ class DocumentsShareWizard(models.TransientModel):
 
     task_ids = fields.Many2many(
     'project.task',
-    'res_partner_document_project_task_rel',  # new unique table
     'res_partner_document_id',
     'project_task_id',
     string='Tasks'

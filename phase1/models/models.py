@@ -7,13 +7,14 @@ class DocumentsShareWizard(models.TransientModel):
     _description = 'Document Share Activity Wizard'
     _inherit = ['mail.activity.mixin']
 
-    task_ids = fields.Many2many(
-        'project.task',
-        'documents_share_wizard_project_task_rel',
-        'documents_share_wizard_id',
-        'project_task_id',
-        string='Tasks'
-    )
+   task_ids = fields.Many2many(
+    'project.task',
+    'documents_share_wizard_project_task_rel',
+    'documents_share_wizard_id',
+    'task_id',
+    string='Tasks'
+)
+
 
     document_share_id = fields.Many2one('documents.share', string='Documents Share')
     summary = fields.Char(string='Summary', required=True)
@@ -153,13 +154,13 @@ class ProjectProduct(models.Model):
                     ('product_id', '=', vals['product_id']),
                     ('active', '=', True)
                 ])
-                if existing:
-                    raise ValidationError(_(
-                        "Product %(product)s is already added to project %(project)s"
-                    ) % {
-                                              'product': self.env['product.product'].browse(vals['product_id']).name,
-                                              'project': self.env['project.project'].browse(vals['project_id']).name
-                                          })
+                # if existing:
+                #     raise ValidationError(_(
+                #         "Product %(product)s is already added to project %(project)s"
+                #     ) % {
+                #         'product': self.env['product.product'].browse(vals['product_id']).name,
+                #         'project': self.env['project.project'].browse(vals['project_id']).name
+                #     })
         return super().create(vals_list)
 
     def write(self, vals):
@@ -174,13 +175,13 @@ class ProjectProduct(models.Model):
                     ('active', '=', True),
                     ('id', '!=', record.id)
                 ])
-                if existing:
-                    raise ValidationError(_(
-                        "Product %(product)s is already added to project %(project)s"
-                    ) % {
-                                              'product': self.env['product.product'].browse(product_id).name,
-                                              'project': self.env['project.project'].browse(project_id).name
-                                          })
+                # if existing:
+                #     raise ValidationError(_(
+                #         "Product %(product)s is already added to project %(project)s"
+                #     ) % {
+                #         'product': self.env['product.product'].browse(product_id).name,
+                #         'project': self.env['project.project'].browse(project_id).name
+                #     })
         return super().write(vals)
 
 

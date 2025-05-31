@@ -2,18 +2,19 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
-class DocumentsShareWizard(models.TransientModel):
-    _name = 'documents.share.wizard'
-    _description = 'Document Share Activity Wizard'
-    _inherit = ['mail.activity.mixin']
+from odoo import models, fields
 
-   task_ids = fields.Many2many(
-    'project.task',
-    'documents_share_wizard_project_task_rel',
-    'documents_share_wizard_id',
-    'task_id',
-    string='Tasks'
-)
+class DocumentsShareWizard(models.Model):
+    _name = 'documents.share.wizard'
+    _description = 'Documents Share Wizard'
+
+    task_ids = fields.Many2many(
+        'project.task',
+        'documents_share_wizard_project_task_rel',
+        'documents_share_wizard_id',
+        'project_task_id',  # Corrected column name
+        string='Tasks'
+    )
 
 
     document_share_id = fields.Many2one('documents.share', string='Documents Share')

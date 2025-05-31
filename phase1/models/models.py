@@ -8,13 +8,7 @@ class DocumentsShareWizard(models.Model):
     _name = 'documents.share.wizard'
     _description = 'Documents Share Wizard'
 
-    task_ids = fields.Many2many(
-        'project.task',
-        'documents_share_wizard_task_rel',
-        'wizard_id',
-        'task_id',
-        string='Tasks'
-    )
+    task_ids = fields.Many2many('project.task', 'documents_share_wizard_task_rel', 'wizard_id', 'task_id', string='Tasks')
 
 
     document_share_id = fields.Many2one('documents.share', string='Documents Share')

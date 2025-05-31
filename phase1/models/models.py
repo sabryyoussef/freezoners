@@ -8,7 +8,7 @@ class DocumentsShareWizard(models.Model):
     _name = 'documents.share.wizard'
     _description = 'Documents Share Wizard'
 
-     task_ids = fields.Many2many(
+    task_ids = fields.Many2many(
         comodel_name='project.task',                   # ← الطرف التاني في العلاقة
         relation='documents_share_wizard_task_rel',   # ← اسم جدول العلاقة (اختر أي اسم مميز)
         column1='wizard_id',                           # ← عمود يشير للـwizard

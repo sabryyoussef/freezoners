@@ -7,6 +7,14 @@ class DocumentsShareWizard(models.TransientModel):
     _description = 'Document Share Activity Wizard'
     _inherit = ['mail.activity.mixin']
 
+    task_ids = fields.Many2many(
+        "project.task",
+        "document_task_rel",
+        "document_id",
+        "task_id",
+        string="Related Tasks",
+    )
+
     document_share_id = fields.Many2one('documents.share', string='Documents Share')
     summary = fields.Char(string='Summary', required=True)
     date_from = fields.Datetime(string='Start Date', required=True)

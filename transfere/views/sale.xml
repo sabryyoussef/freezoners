@@ -55,9 +55,9 @@
     <record model='ir.ui.menu' id='sale.menu_sales_config'>
         <field name="name">Pro-forma Invoice Orders</field>
     </record>
-    <record model='ir.ui.menu' id='sale_crm.sale_order_menu_quotations_crm'>
+<!--     <record model='ir.ui.menu' id='sale_crm.sale_order_menu_quotations_crm'>
         <field name="name">My Pro-forma Invoice</field>
-    </record>
+    </record> -->
     <record model='ir.ui.menu' id='sale.menu_sale_quotations'>
         <field name="name">Pro-forma Invoice</field>
     </record>

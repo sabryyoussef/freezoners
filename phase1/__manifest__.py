@@ -31,7 +31,7 @@
         "wizard/return_project_wizard.xml",
         "wizard/remarks_wizard.xml",
         "views/document_request.xml",
-        "views/partner.xml",
+        # "views/partner.xml",
         "views/documents.xml",
         "views/document.xml",
         "views/account_move.xml",

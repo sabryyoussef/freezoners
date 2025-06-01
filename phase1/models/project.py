@@ -96,17 +96,17 @@ class Project(models.Model):
         string='Project Documents'
     )
 
-    document_type_ids = fields.One2many(
-        'task.document.lines',
-        'project_id',
-        string='Document Types'
-    )
+    # document_type_ids = fields.One2many(
+    #     'task.document.lines',
+    #     'project_id',
+    #     string='Document Types'
+    # )
 
-    document_required_type_ids = fields.One2many(
-        'task.document.required.lines',
-        'project_id',
-        string='Required Document Types'
-    )
+    # document_required_type_ids = fields.One2many(
+    #     'task.document.required.lines',
+    #     'project_id',
+    #     string='Required Document Types'
+    # )
 
     document_request_ids = fields.One2many(
         'documents.request_wizard',
@@ -162,7 +162,7 @@ class Project(models.Model):
         'project.task',
         relation='project_subtask_rel',
         column1='project_id',
-        column2='task_id',
+        column2='task_ids',
         string='Sub Tasks',
         compute='_compute_sub_tasks_ids',
         store=True

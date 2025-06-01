@@ -1,0 +1,73 @@
+<odoo>
+    <record id="sale_view_quotation_tree_with_onboardin" model="ir.ui.view">
+        <field name="name">sale.order</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='create_date']" position="replace">
+                <field name="date_order" />
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_order_form_view_inherit" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="after">
+                <field name="is_expired" invisible="1" />
+                <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                    modifiers="{'invisible': [('is_expired', '=', True)]}" />
+            </xpath>
+            <xpath expr="//field[@name='validity_date']" position="replace">
+                <field name="validity_date" />
+            </xpath>
+            <xpath expr="//field[@name='date_order']" position="after">
+            </xpath>
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm'][2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+            </xpath>
+            <xpath expr="//page[@name='customer_signature']" position="after">
+                <page name="sov" string="SOV">
+                </page>
+                <!-- <page name="analytic_items" string="Analytic Account Items">
+                    <field name="analytic_item_ids"
+                        modifiers="{'readonly': [('state', '!=','draft')]}" />
+                </page> -->
+            </xpath>
+            <xpath expr="//field[@name='order_line']//list//field[@name='price_subtotal']"
+                position="after">
+                <field name="price_total" />
+            </xpath>
+        </field>
+    </record>
+    <record model='ir.ui.menu' id='sale.sale_menu_root'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+    <record model='ir.ui.menu' id='crm.crm_menu_sales'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+    <record model='ir.ui.menu' id='sale.menu_sales_config'>
+        <field name="name">Pro-forma Invoice Orders</field>
+    </record>
+    <record model='ir.ui.menu' id='sale_crm.sale_order_menu_quotations_crm'>
+        <field name="name">My Pro-forma Invoice</field>
+    </record>
+    <record model='ir.ui.menu' id='sale.menu_sale_quotations'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+    <record model='ir.actions.act_window' id='sale.action_quotations'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+    <record model='ir.actions.act_window' id='sale.action_quotations_with_onboarding'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+    <record model='ir.actions.act_window' id='sale.action_orders'>
+        <field name="name">Pro-forma Invoice</field>
+    </record>
+</odoo>

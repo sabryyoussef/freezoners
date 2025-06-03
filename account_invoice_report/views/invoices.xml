@@ -1,0 +1,68 @@
+<odoo>
+    <!-- Inherit internal layout to customize header -->
+    <template id="custom_internal_layout" inherit_id="web.internal_layout">
+        <xpath expr="//div[hasclass('header')]" position="replace">
+            <div class="header" style="background-color:#f0f0f0; padding:10px;">
+                <h2 style="text-align:center; font-weight:bold;">Custom Invoice Header</h2>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Custom external layout for invoice -->
+    <template id="external_layout_invoice_custom">
+        <t t-set="company" t-value="company or o.company_id.sudo()" />
+        <div class="header">
+            <div class="row">
+                <div class="col-3 mb4">
+                    <!-- Uncomment to display logo -->
+                    <!-- <img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % company.logo" style="max-height: 140px;" /> -->
+                    <span t-esc="company.name"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="article o_report_layout_standard"
+             t-att-data-oe-model="o and o._name"
+             t-att-data-oe-id="o and o.id"
+             t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-call="web.address_layout"/>
+        </div>
+
+        <div class="footer o_standard_footer">
+            <div class="row mt12" style="padding-top:20px;">
+                <div class="text-center">
+                    <t t-if="company.report_footer">
+                        <div t-field="company.report_footer"/>
+                    </t>
+                    <t t-if="report_type == 'pdf'" >
+                        <div class="text-muted">
+                            Page: <span class="page"/> / <span class="topage"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Custom wrapper to call external layout -->
+    <template id="external_layout_invoice_new">
+        <t t-set="o" t-value="o or doc"/>
+        <t t-set="company" t-value="company or (o and o.company_id.sudo()) or res_company"/>
+        <t t-call="account_invoice_report.external_layout_invoice_custom">
+            <t t-raw="0"/>
+        </t>
+    </template>
+
+    <!-- Override report_invoice_document -->
+    <template id="report_invoice_document_new" inherit_id="account.report_invoice_document">
+        <xpath expr="//t[@t-call='web.external_layout']" position="attributes">
+            <attribute name="t-call">account_invoice_report.custom_internal_layout</attribute>
+        </xpath>
+
+        <!-- Remove all default blocks -->
+        <xpath expr="//div[contains(@class,'page')]" position="replace">
+            <!-- Your full custom block goes here -->
+            <!-- Start of your layout (already done well in your provided code) -->
+        </xpath>
+    </template>
+</odoo>

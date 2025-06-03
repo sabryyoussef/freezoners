@@ -1,0 +1,88 @@
+<odoo>
+    <record id="partner_custom" model="ir.ui.view">
+        <field name="name">res.partner</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_new" type="object" string="New" class="oe_highlight"
+                            modifiers="{'invisible': ['|',('is_appear_buttons', '=', False),('stage_id', 'not in', [2,3])]}"/>
+                    <button name="action_verified" type="object" string="Verified" class="btn btn-success"
+                            modifiers="{'invisible': ['|',('is_appear_buttons', '=', False),('stage_id', '!=', 1)]}"/>
+                    <button name="action_liquidated_struck_off" type="object"
+                            string="Liquidated Struck-off" class="btn btn-warning"
+                            modifiers="{'invisible': ['|',('is_appear_buttons', '=', False),('stage_id', '!=', 2)]}"/>
+                    <button name="action_open_shareholder" type="object" string="Create Company"
+                            class="btn-primary"
+                            modifiers="{'invisible': [('shareholder', '!=','True')]}"/>
+                    <field name="stage_id" widget="statusbar" class="o_field_statusbar"/>
+                </header>
+            </xpath>
+
+
+            <xpath expr="//group" position="after">
+                <group name="documents">
+                    <group name="secondary_documents" string="">
+
+                    </group>
+                    <group name="main_documents" string="Main Documents">
+                        <field name="residency" widget="boolean_toggle"
+                               modifiers="{'invisible': [('company_type', '!=','person')]}"/>
+                        <field name="emirates_no_id"
+                               domain="[('partner_id', '!=', False), ('partner_id', '=', id)]"
+                               modifiers="{'invisible': ['|',('residency', '!=',True),('company_type', '!=','person')]}"/>
+                        <field name="document_type_id" ref="base.document_type_national_id"/>
+
+
+                        <field name="residence_visa_id"
+                               domain="[('partner_id','!=', False),('partner_id','=', id)]"
+                               modifiers="{'invisible': ['|',('residency', '!=',True),('company_type', '!=','person')]}"/>
+                        <field name="trade_license_id"
+                               domain="[('partner_id','!=', False),('partner_id','=', id)]"
+                               context="{'default_partner_id': id,'default_type_id': %(project_custom.res_partner_document_type_trade_license)s}"
+                               modifiers="{'invisible': [('company_type', '!=','company')]}"/>
+                        <field name="memorandum_articles_id"
+                               domain="[('partner_id','!=', False),('partner_id','=', id)]"
+                               modifiers="{'invisible': [('company_type', '!=','company')]}"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="all_license_activity_ids" widget="many2many_tags" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+        <record id="res_partner_stages_kanban_search" model="ir.ui.view">
+            <field name="name">res.partner.stages.search</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <field name="stage_id" widget="many2one" options="{'no_create': True}"/>
+                    <filter name="partner_stage" string="Stage" domain="[]" context="{'group_by' : 'stage_id'}"/>
+                </xpath>
+            </field>
+        </record>
+    <record id="contacts.action_contacts" model="ir.actions.act_window">
+        <field name="context">{'search_default_partner_stage': 1}</field>
+    </record>
+    <!--    <record id="res_partner_stages" model="ir.ui.view">-->
+    <!--        <field name="name">res.partner.stage</field>-->
+    <!--        <field name="model">res.partner</field>-->
+    <!--        <field name="inherit_id" ref=""/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//kanban" position="attributes">-->
+    <!--                <attribute name="default_group_by">stage_id</attribute>-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
+</odoo>
+
+
+<!--                               context="{'default_partner_id': id,'default_type_id': %(__export__.res_partner_document_type_526_f6c7bc14)s}"-->
+<!--                               context="{'default_partner_id': id,'default_type_id': %(__export__.res_partner_document_type_525_86b2c880)s}"-->
+<!--                               context="{'default_partner_id': id,'default_type_id': %(__export__.res_partner_document_type_816_d205684b)s}"-->
+
+

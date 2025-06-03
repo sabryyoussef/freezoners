@@ -31,4 +31,16 @@
         <field name="groups"
                eval="[(4, ref('crm_log.crm_lead_admin_group'))]"/>
     </record>
+    <record id="crm_stage_quotation_form" model="ir.ui.view">
+    <field name="name">CRM Stage Quotation Form</field>
+    <field name="model">crm.stage</field>
+    <field name="inherit_id" ref="crm.crm_stage_form"/>
+    <field name="arch" type="xml">
+        <!-- “fold” exists for every stage, so it’s a safe anchor -->
+        <xpath expr="//field[@name='fold']" position="after">
+            <field name="is_hide_quotation_button"/>
+        </xpath>
+    </field>
+</record>
+
 </odoo>

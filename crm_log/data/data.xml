@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <record id="crm_lead_business_proposal" model="res.partner.document.type">
         <field name="name">Business Proposal</field>
